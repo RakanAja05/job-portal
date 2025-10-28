@@ -27,8 +27,8 @@
                 focus:ring-indigo-500 dark:focus:ring-indigo-600
                 rounded-md shadow-sm
                 ">
-                <option value="HR" {{ old('role') == 'HR' ? 'selected' : '' }}>HR</option>
-                <option value="Job Seeker" {{ old('role') == 'Job Seeker' ? 'selected' : '' }}>Job Seeker</option>
+                <option value="user" {{ old('role') == 'user' ? 'selected' : '' }}>User</option>
+                <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
             </select>
             <x-input-error :messages="$errors->get('role')" class="mt-2" />
         </div>
