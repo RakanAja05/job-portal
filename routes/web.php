@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\HRController;
 use App\Http\Controllers\JobSeekerController;
+use App\Http\Controllers\JobController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -33,6 +34,30 @@ Route::middleware(['auth', 'verified', 'isAdmin', 'log.after'])->prefix('admin')
     Route::get('/settings', [AdminController::class, 'settings'])->name('admin.settings');
     Route::get('/reports', [AdminController::class, 'reports'])->name('admin.reports');
 });
+
+// Job CRUD Routes - hanya untuk admin
+Route::resource('jobs', JobController::class)->middleware(['auth', 'isAdmin']);
+
+// Preview Email Template (untuk testing)
+Route::get('/email-preview', function () {
+    $job = App\Models\JobVacancy::first();
+    
+    if (!$job) {
+        // Create dummy job for preview
+        $job = new App\Models\JobVacancy([
+            'title' => 'Senior Web Developer',
+            'company' => 'PT Technology Indonesia',
+            'location' => 'Jakarta',
+            'type' => 'full-time',
+            'salary' => 15000000,
+            'description' => 'Kami mencari Senior Web Developer yang berpengalaman dalam Laravel, Vue.js, dan MySQL. Kandidat yang ideal memiliki minimal 3 tahun pengalaman dalam pengembangan web dan dapat bekerja dalam tim.',
+            'logo' => null
+        ]);
+        $job->id = 1;
+    }
+    
+    return new App\Mail\JobCreatedMail($job);
+})->middleware(['auth', 'isAdmin']);
 
 // Profile routes with auth middleware group
 Route::middleware('auth')->group(function () {

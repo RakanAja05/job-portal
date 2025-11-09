@@ -1,0 +1,1217 @@
+\documentclass[a4paper,oneside,11pt]{book}
+
+\usepackage{graphicx}
+\usepackage{titling}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{indentfirst}
+
+\geometry{
+    left=3cm,
+    right=2.5cm,
+    top=3cm,
+    bottom=3cm
+}
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{phpstyle}{
+    backgroundcolor=\color{backcolour},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    language=PHP
+}
+
+\title{Laporan Praktikum \\ Praktikum Pemrograman Web 2\\
+Pertemuan 9\\
+Middleware Role-based Laravel}
+\author{Nama Mahasiswa: Muhammad Rakan Hibrizi (24/539132/SV/24568)}
+\date{\today}
+
+\begin{document}
+
+\begin{titlingpage}
+\begin{center}
+\vspace{4cm}
+\Huge \textbf{\thetitle}\\[2cm]
+\includegraphics[height=8cm]{lambang ugm.png}\\[4cm]
+\Large
+\theauthor\\
+Kelas B2 \\[1cm]
+Dosen Pengampu: Dinar Nugroho Pratomo, S.Kom., M.IM., M.Cs.\\[2cm]
+\thedate
+\end{center}
+\end{titlingpage}
+
+\tableofcontents
+\newpage
+
+\chapter{Tujuan Praktikum}
+\begin{enumerate}
+    \item Mahasiswa memahami konsep middleware Laravel dalam autentikasi dan otorisasi.
+    \item Mahasiswa dapat membatasi akses halaman berdasarkan status login menggunakan middleware \texttt{auth}.
+    \item Mahasiswa mampu membuat custom middleware untuk pengecekan role pengguna.
+    \item Mahasiswa dapat mendaftarkan middleware custom di Laravel 11+.
+    \item Mahasiswa mampu menerapkan middleware untuk membedakan hak akses antara user dan admin.
+\end{enumerate}
+
+\chapter{Tugas Praktikum}
+
+\chapter{Tugas Praktikum}
+
+\section{Langkah 1: Membuat Route Baru /hello}
+
+Route sederhana untuk menampilkan pesan "Hello World".
+
+\begin{lstlisting}[style=phpstyle]
+// routes/web.php
+
+Route::get('/hello', function () {
+    return 'Hello World';
+});
+\end{lstlisting}
+
+\textbf{Penjelasan:}
+\begin{itemize}
+    \item Route GET sederhana yang mengembalikan string
+    \item Tidak memerlukan controller atau view
+    \item Dapat diakses oleh siapa saja tanpa autentikasi
+\end{itemize}
+
+\section{Langkah 2: Membuat Controller dan Route}
+
+\subsection{Membuat JobController}
+
+Buat controller menggunakan artisan command:
+
+\begin{lstlisting}[language=bash]
+php artisan make:controller JobController
+\end{lstlisting}
+
+Tambahkan method di JobController:
+
+\begin{lstlisting}[style=phpstyle]
+// app/Http/Controllers/JobController.php
+
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class JobController extends Controller
+{
+    public function index()
+    {
+        return 'Halaman Daftar Pekerjaan';
+    }
+}
+\end{lstlisting}
+
+\subsection{Mendaftarkan Route ke Controller}
+
+\begin{lstlisting}[style=phpstyle]
+// routes/web.php
+
+use App\Http\Controllers\JobController;
+
+Route::get('/jobs', [JobController::class, 'index']);
+\end{lstlisting}
+
+\textbf{Penjelasan:}
+\begin{itemize}
+    \item Controller memisahkan logic dari route
+    \item Menggunakan array syntax \texttt{[ControllerClass::class, 'method']}
+    \item Jangan lupa import class Controller di bagian atas file
+\end{itemize}
+
+\section{Langkah 3: Menggunakan Middleware Bawaan (auth)}
+
+Middleware \texttt{auth} digunakan untuk membatasi akses hanya untuk user yang sudah login.
+
+\begin{lstlisting}[style=phpstyle]
+// routes/web.php
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+\end{lstlisting}
+
+\textbf{Penjelasan:}
+\begin{itemize}
+    \item Middleware \texttt{auth} memastikan user sudah login
+    \item Middleware \texttt{verified} memastikan email sudah diverifikasi
+    \item Jika belum login, user akan di-redirect ke halaman login
+    \item Jika belum verifikasi email, akan di-redirect ke halaman verifikasi
+\end{itemize}
+
+\section{Langkah 4: Membuat Custom Middleware IsAdmin}
+
+\subsection{Generate Middleware}
+
+Buat middleware menggunakan artisan command:
+
+\begin{lstlisting}[language=bash]
+php artisan make:middleware IsAdmin
+\end{lstlisting}
+
+\subsection{Implementasi Logic IsAdmin}
+
+Edit file middleware yang telah dibuat:
+
+\begin{lstlisting}[style=phpstyle]
+// app/Http/Middleware/IsAdmin.php
+
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Auth;
+
+class IsAdmin
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        // Check if user is authenticated and has admin role
+        if (Auth::check() && Auth::user()->role === 'admin') {
+            return $next($request);
+        }
+
+        // Redirect to home when not authorized
+        return redirect('/')->with('error', 'Access denied. Admin only.');
+    }
+}
+\end{lstlisting}
+
+\textbf{Penjelasan:}
+\begin{itemize}
+    \item Method \texttt{handle()} menerima \texttt{\$request} dan \texttt{\$next}
+    \item \texttt{Auth::check()} memeriksa apakah user sudah login
+    \item \texttt{Auth::user()->role} mengambil role dari user yang login
+    \item Jika role = 'admin', request diteruskan dengan \texttt{\$next(\$request)}
+    \item Jika bukan admin, redirect ke home dengan pesan error
+\end{itemize}
+
+\section{Langkah 5: Mendaftarkan Middleware Custom}
+
+Pada Laravel 11+, middleware didaftarkan di \texttt{bootstrap/app.php} menggunakan method \texttt{alias()}.
+
+\begin{lstlisting}[style=phpstyle]
+// bootstrap/app.php
+
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware): void {
+        // Register middleware aliases
+        $middleware->alias([
+            'isAdmin' => \App\Http\Middleware\IsAdmin::class,
+        ]);
+    })
+    ->withExceptions(function (Exceptions $exceptions): void {
+        //
+    })->create();
+\end{lstlisting}
+
+\textbf{Penjelasan:}
+\begin{itemize}
+    \item Middleware diberi alias 'isAdmin' agar mudah digunakan di route
+    \item Method \texttt{->alias()} menerima array dengan format \texttt{'alias' => MiddlewareClass::class}
+    \item Setelah didaftarkan, middleware dapat dipanggil dengan \texttt{->middleware('isAdmin')}
+\end{itemize}
+
+\textbf{Catatan:} Pada Laravel versi lama (sebelum Laravel 11), middleware didaftarkan di \texttt{app/Http/Kernel.php} pada array \texttt{\$routeMiddleware}.
+
+\section{Langkah 6: Menambahkan Kolom Role ke Tabel Users}
+
+\subsection{Modifikasi Migration}
+
+Edit migration users table:
+
+\begin{lstlisting}[style=phpstyle]
+// database/migrations/0001_01_01_000000_create_users_table.php
+
+Schema::create('users', function (Blueprint $table) {
+    $table->id();
+    $table->string('name');
+    $table->string('email')->unique();
+    $table->timestamp('email_verified_at')->nullable();
+    $table->string('password');
+    $table->enum('role', ['user', 'admin'])->default('user');
+    $table->rememberToken();
+    $table->timestamps();
+});
+\end{lstlisting}
+
+\textbf{Penjelasan:}
+\begin{itemize}
+    \item Menambahkan kolom \texttt{role} dengan tipe ENUM
+    \item Hanya menerima nilai 'user' atau 'admin'
+    \item Default value adalah 'user'
+\end{itemize}
+
+\subsection{Jalankan Migration}
+
+Karena migration sudah pernah dijalankan, gunakan \texttt{migrate:fresh} untuk reset database:
+
+\begin{lstlisting}[language=bash]
+php artisan migrate:fresh --seed
+\end{lstlisting}
+
+\textbf{Peringatan:} \texttt{migrate:fresh} akan menghapus semua data di database!
+
+\subsection{Update Model User}
+
+Tambahkan 'role' ke \texttt{\$fillable} agar dapat di-assign:
+
+\begin{lstlisting}[style=phpstyle]
+// app/Models/User.php
+
+protected $fillable = [
+    'name',
+    'email',
+    'password',
+    'role',
+];
+\end{lstlisting}
+
+\section{Langkah 7: Membatasi Route Khusus Admin}
+
+Buat route yang hanya dapat diakses oleh admin dengan menggabungkan middleware \texttt{auth} dan \texttt{isAdmin}.
+
+\begin{lstlisting}[style=phpstyle]
+// routes/web.php
+
+Route::get('/admin', function () {
+    return 'Halaman Admin';
+})->middleware(['auth', 'verified', 'isAdmin']);
+\end{lstlisting}
+
+\textbf{Penjelasan:}
+\begin{itemize}
+    \item Middleware \texttt{auth} memastikan user sudah login
+    \item Middleware \texttt{verified} memastikan email sudah diverifikasi
+    \item Middleware \texttt{isAdmin} memastikan role user adalah 'admin'
+    \item Ketiga middleware dijalankan secara berurutan
+    \item Jika salah satu middleware gagal, request tidak akan diteruskan
+\end{itemize}
+
+\chapter{Tugas Latihan}
+
+\section{Latihan 1: Route /profile untuk User Login}
+
+Buatlah route \texttt{/profile} yang hanya dapat diakses oleh user yang sudah login (tidak perlu admin).
+
+\subsection{Solusi:}
+
+\begin{lstlisting}[style=phpstyle]
+// routes/web.php
+
+Route::get('/profile', function () {
+    return 'Halaman Profile: ' . Auth::user()->name;
+})->middleware(['auth', 'verified'])->name('profile');
+\end{lstlisting}
+
+\textbf{Penjelasan:}
+\begin{itemize}
+    \item Menggunakan middleware \texttt{auth} dan \texttt{verified}
+    \item Tidak menggunakan middleware \texttt{isAdmin}, sehingga semua user yang login dapat akses
+    \item Menampilkan nama user dengan \texttt{Auth::user()->name}
+\end{itemize}
+
+\section{Latihan 2: Route /admin/jobs untuk Admin}
+
+Buatlah route \texttt{/admin/jobs} yang hanya dapat diakses oleh admin.
+
+\subsection{Solusi:}
+
+\begin{lstlisting}[style=phpstyle]
+// routes/web.php
+
+Route::get('/admin/jobs', [AdminController::class, 'index'])
+    ->middleware(['auth', 'verified', 'isAdmin'])
+    ->name('admin.jobs');
+\end{lstlisting}
+
+Atau menggunakan route group untuk beberapa route admin:
+
+\begin{lstlisting}[style=phpstyle]
+// routes/web.php
+
+Route::middleware(['auth', 'verified', 'isAdmin'])
+    ->prefix('admin')
+    ->group(function () {
+        Route::get('/jobs', [AdminController::class, 'index'])
+            ->name('admin.jobs');
+        Route::get('/users', [AdminController::class, 'users'])
+            ->name('admin.users');
+        Route::get('/settings', [AdminController::class, 'settings'])
+            ->name('admin.settings');
+    });
+\end{lstlisting}
+
+\textbf{Penjelasan:}
+\begin{itemize}
+    \item Menggunakan middleware \texttt{auth}, \texttt{verified}, dan \texttt{isAdmin}
+    \item \texttt{prefix('admin')} membuat semua route dalam group memiliki prefix '/admin'
+    \item Semua route dalam group akan otomatis menggunakan ketiga middleware
+    \item URL akan menjadi: /admin/jobs, /admin/users, /admin/settings
+\end{itemize}
+
+\chapter{Hasil dan Pembahasan}
+
+\section{Testing Access Control}
+
+\subsection{Test 1: Akses Route /hello}
+\begin{itemize}
+    \item URL: http://127.0.0.1:8000/hello
+    \item Status: [\checkmark] Dapat diakses tanpa login
+    \item Result: Menampilkan "Hello World"
+\end{itemize}
+
+\subsection{Test 2: Akses Route /jobs}
+\begin{itemize}
+    \item URL: http://127.0.0.1:8000/jobs
+    \item Status: [\checkmark] Dapat diakses tanpa login
+    \item Result: Menampilkan "Halaman Daftar Pekerjaan"
+\end{itemize}
+
+\subsection{Test 3: Akses Route /dashboard Tanpa Login}
+\begin{itemize}
+    \item URL: http://127.0.0.1:8000/dashboard
+    \item Status: [$\times$] Redirect ke /login
+    \item Result: Middleware \texttt{auth} berhasil memblokir akses
+\end{itemize}
+
+\subsection{Test 4: Akses Route /dashboard Setelah Login (User Biasa)}
+\begin{itemize}
+    \item Login sebagai: user@example.com
+    \item URL: http://127.0.0.1:8000/dashboard
+    \item Status: [\checkmark] Dapat diakses
+    \item Result: Menampilkan dashboard
+\end{itemize}
+
+\subsection{Test 5: Akses Route /admin dengan User Biasa}
+\begin{itemize}
+    \item Login sebagai: user@example.com (role: user)
+    \item URL: http://127.0.0.1:8000/admin
+    \item Status: [$\times$] Redirect ke home dengan error message
+    \item Result: Middleware \texttt{isAdmin} berhasil memblokir akses
+\end{itemize}
+
+\subsection{Test 6: Akses Route /admin dengan Admin}
+\begin{itemize}
+    \item Login sebagai: admin@example.com (role: admin)
+    \item URL: http://127.0.0.1:8000/admin
+    \item Status: [\checkmark] Dapat diakses
+    \item Result: Menampilkan "Halaman Admin"
+\end{itemize}
+
+\subsection{Test 7: Akses Route /profile Setelah Login}
+\begin{itemize}
+    \item Login sebagai user atau admin
+    \item URL: http://127.0.0.1:8000/profile
+    \item Status: [\checkmark] Dapat diakses oleh user dan admin
+    \item Result: Menampilkan "Halaman Profile: [Nama User]"
+\end{itemize}
+
+\subsection{Test 8: Akses Route /admin/jobs dengan Admin}
+\begin{itemize}
+    \item Login sebagai: admin@example.com
+    \item URL: http://127.0.0.1:8000/admin/jobs
+    \item Status: [\checkmark] Dapat diakses
+    \item Result: Menampilkan halaman job management untuk admin
+\end{itemize}
+
+\section{Pembahasan}
+
+\subsection{Cara Kerja Middleware}
+
+Middleware bekerja sebagai filter yang memeriksa HTTP request sebelum mencapai route handler atau controller. Dalam praktikum ini:
+
+\begin{enumerate}
+    \item \textbf{Middleware auth}: Memeriksa apakah user sudah login. Jika belum, redirect ke halaman login.
+    
+    \item \textbf{Middleware verified}: Memeriksa apakah email user sudah diverifikasi. Jika belum, redirect ke halaman verifikasi email.
+    
+    \item \textbf{Middleware isAdmin}: Memeriksa role user. Jika bukan admin, redirect ke home dengan pesan error.
+\end{enumerate}
+
+\subsection{Urutan Eksekusi Middleware}
+
+Ketika menggunakan multiple middleware seperti:
+
+\begin{lstlisting}[style=phpstyle]
+->middleware(['auth', 'verified', 'isAdmin'])
+\end{lstlisting}
+
+Urutan eksekusi adalah:
+\begin{enumerate}
+    \item Middleware \texttt{auth} dijalankan terlebih dahulu
+    \item Jika \texttt{auth} pass, lanjut ke middleware \texttt{verified}
+    \item Jika \texttt{verified} pass, lanjut ke middleware \texttt{isAdmin}
+    \item Jika semua pass, request diteruskan ke controller/route handler
+\end{enumerate}
+
+Jika salah satu middleware gagal (tidak pass), eksekusi dihentikan dan request tidak diteruskan.
+
+\subsection{Keuntungan Menggunakan Middleware}
+
+\begin{enumerate}
+    \item \textbf{Reusability}: Middleware dapat digunakan di banyak route tanpa perlu menulis ulang logic
+    \item \textbf{Separation of Concerns}: Logic authorization terpisah dari controller
+    \item \textbf{Maintainability}: Perubahan logic authorization hanya perlu dilakukan di satu tempat
+    \item \textbf{Security}: Centralized security logic memudahkan audit
+\end{enumerate}
+
+\subsection{Perbedaan Laravel 11+ dengan Versi Sebelumnya}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Aspek} & \textbf{Laravel 10 dan sebelumnya} & \textbf{Laravel 11+} \\
+\hline
+File registrasi & app/Http/Kernel.php & bootstrap/app.php \\
+Method & \$routeMiddleware array & ->alias() method \\
+Struktur & Array langsung & Closure function \\
+\hline
+\end{tabular}
+\caption{Perbedaan Registrasi Middleware}
+\end{table}
+
+\chapter{Kesimpulan}
+
+\subsection{Modifikasi Migration Users Table}
+Menambahkan kolom \texttt{role} pada tabel users dengan tipe ENUM yang memiliki dua nilai: 'user' dan 'admin'.
+
+\begin{lstlisting}[style=phpstyle]
+// database/migrations/0001_01_01_000000_create_users_table.php
+
+Schema::create('users', function (Blueprint $table) {
+    $table->id();
+    $table->string('name');
+    $table->string('email')->unique();
+    $table->timestamp('email_verified_at')->nullable();
+    $table->string('password');
+    $table->enum('role', ['user', 'admin'])->default('user');
+    $table->rememberToken();
+    $table->timestamps();
+});
+\end{lstlisting}
+
+\subsection{Update UserFactory}
+Menambahkan default role 'user' dan method \texttt{admin()} untuk membuat user dengan role admin.
+
+\begin{lstlisting}[style=phpstyle]
+// database/factories/UserFactory.php
+
+public function definition(): array
+{
+    return [
+        'name' => fake()->name(),
+        'email' => fake()->unique()->safeEmail(),
+        'email_verified_at' => now(),
+        'password' => static::$password ??= Hash::make('password'),
+        'role' => 'user',
+        'remember_token' => Str::random(10),
+    ];
+}
+
+public function admin(): static
+{
+    return $this->state(fn (array $attributes) => [
+        'role' => 'admin',
+    ]);
+}
+\end{lstlisting}
+
+\subsection{Database Seeder}
+Membuat test user dengan role admin dan user untuk keperluan testing.
+
+\begin{lstlisting}[style=phpstyle]
+// database/seeders/DatabaseSeeder.php
+
+public function run(): void
+{
+    // Create regular users
+    User::factory(5)->create();
+
+    // Create admin user
+    User::factory()->admin()->create([
+        'name' => 'Admin User',
+        'email' => 'admin@example.com',
+        'password' => bcrypt('password'),
+    ]);
+
+    // Create regular test user
+    User::factory()->create([
+        'name' => 'Test User',
+        'email' => 'user@example.com',
+        'password' => bcrypt('password'),
+        'role' => 'user',
+    ]);
+}
+\end{lstlisting}
+
+\section{Implementasi Custom Middleware}
+
+\subsection{Middleware EnsureUserHasRole}
+Middleware ini memeriksa apakah user memiliki role yang sesuai. Middleware ini dapat menerima multiple roles sebagai parameter.
+
+\begin{lstlisting}[style=phpstyle]
+// app/Http/Middleware/EnsureUserHasRole.php
+
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
+
+class EnsureUserHasRole
+{
+    public function handle(Request $request, Closure $next, 
+                          string ...$roles): Response
+    {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        // Get user's role
+        $userRole = Auth::user()->role;
+
+        // Check if user's role matches any of the required roles
+        if (in_array($userRole, $roles)) {
+            return $next($request);
+        }
+
+        // If role doesn't match, abort with 403
+        abort(403, 'Unauthorized access');
+    }
+}
+\end{lstlisting}
+
+\textbf{Penjelasan:}
+\begin{itemize}
+    \item Parameter \texttt{...\$roles} memungkinkan middleware menerima multiple roles
+    \item Cek autentikasi terlebih dahulu menggunakan \texttt{Auth::check()}
+    \item Bandingkan role user dengan array roles yang diizinkan menggunakan \texttt{in\_array()}
+    \item Return 403 Forbidden jika role tidak sesuai
+\end{itemize}
+
+\subsection{Middleware IsAdmin}
+Middleware khusus untuk memeriksa apakah user adalah admin. Jika bukan admin, user akan di-redirect ke halaman home.
+
+\begin{lstlisting}[style=phpstyle]
+// app/Http/Middleware/IsAdmin.php
+
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Auth;
+
+class IsAdmin
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        // Check if user is authenticated and has admin role
+        if (Auth::check() && Auth::user()->role === 'admin') {
+            return $next($request);
+        }
+
+        // Redirect to home when not authorized
+        return redirect('/')->with('error', 'Access denied. Admin only.');
+    }
+}
+\end{lstlisting}
+
+\textbf{Penjelasan:}
+\begin{itemize}
+    \item Khusus memeriksa role 'admin'
+    \item Redirect ke home dengan flash message error jika bukan admin
+    \item Lebih sederhana dibanding EnsureUserHasRole karena hanya check satu role
+\end{itemize}
+
+\subsection{Terminable Middleware - LogAfterRequest}
+Middleware ini mencatat informasi request setelah response dikirim ke client, sehingga tidak memperlambat response time.
+
+\begin{lstlisting}[style=phpstyle]
+// app/Http/Middleware/LogAfterRequest.php
+
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Response;
+
+class LogAfterRequest
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        return $next($request);
+    }
+
+    public function terminate(Request $request, Response $response): void
+    {
+        // Log request details after response is sent
+        Log::info('Request processed', [
+            'url' => $request->fullUrl(),
+            'method' => $request->method(),
+            'ip' => $request->ip(),
+            'user_id' => auth()->id(),
+            'status' => $response->getStatusCode(),
+            'timestamp' => now()->toDateTimeString(),
+        ]);
+    }
+}
+\end{lstlisting}
+
+\textbf{Penjelasan:}
+\begin{itemize}
+    \item Method \texttt{terminate()} dipanggil setelah response dikirim
+    \item Logging tidak mempengaruhi response time
+    \item Mencatat URL, method HTTP, IP address, user ID, status code, dan timestamp
+    \item Berguna untuk audit trail dan debugging
+\end{itemize}
+
+\section{Registrasi Middleware}
+
+Pada Laravel 11+, middleware didaftarkan menggunakan method \texttt{alias()} di file \texttt{bootstrap/app.php}.
+
+\begin{lstlisting}[style=phpstyle]
+// bootstrap/app.php
+
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware): void {
+        // Register middleware aliases
+        $middleware->alias([
+            'role' => \App\Http\Middleware\EnsureUserHasRole::class,
+            'isAdmin' => \App\Http\Middleware\IsAdmin::class,
+            'log.after' => \App\Http\Middleware\LogAfterRequest::class,
+        ]);
+    })
+    ->withExceptions(function (Exceptions $exceptions): void {
+        //
+    })->create();
+\end{lstlisting}
+
+\textbf{Penjelasan:}
+\begin{itemize}
+    \item Setiap middleware diberi alias untuk memudahkan penggunaan di routes
+    \item Alias 'role' untuk EnsureUserHasRole
+    \item Alias 'isAdmin' untuk IsAdmin
+    \item Alias 'log.after' untuk LogAfterRequest
+\end{itemize}
+
+\section{Implementasi Routes dengan Middleware}
+
+\subsection{Route Structure}
+Routes diorganisir berdasarkan level akses dan role pengguna.
+
+\begin{lstlisting}[style=phpstyle]
+// routes/web.php
+
+<?php
+
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminController;
+use Illuminate\Support\Facades\Route;
+
+// Public route
+Route::get('/', function () {
+    return view('welcome');
+});
+
+// Dashboard untuk semua user yang login
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+\end{lstlisting}
+
+\subsection{User Routes}
+Routes khusus untuk user dengan role 'user'. Menggunakan middleware \texttt{role:user} untuk membatasi akses.
+
+\begin{lstlisting}[style=phpstyle]
+// User Dashboard - hanya untuk role 'user'
+Route::middleware(['auth', 'verified', 'role:user'])
+    ->prefix('user')
+    ->group(function () {
+        Route::get('/dashboard', function () {
+            return view('user.dashboard');
+        })->name('user.dashboard');
+        
+        Route::get('/profile', function () {
+            return view('user.profile');
+        })->name('user.profile');
+    });
+\end{lstlisting}
+
+\textbf{Penjelasan:}
+\begin{itemize}
+    \item \texttt{middleware(['auth', 'verified', 'role:user'])} - Harus login, email verified, dan role user
+    \item \texttt{prefix('user')} - Semua route dalam group ini akan memiliki prefix '/user'
+    \item Hanya user dengan role 'user' yang dapat mengakses
+\end{itemize}
+
+\subsection{Admin Routes}
+Routes khusus untuk admin menggunakan middleware \texttt{isAdmin} dan \texttt{log.after} untuk logging.
+
+\begin{lstlisting}[style=phpstyle]
+// Admin Dashboard - hanya untuk role 'admin'
+Route::middleware(['auth', 'verified', 'isAdmin', 'log.after'])
+    ->prefix('admin')
+    ->group(function () {
+        Route::get('/jobs', [AdminController::class, 'index'])
+            ->name('admin.jobs');
+        Route::get('/users', [AdminController::class, 'users'])
+            ->name('admin.users');
+        Route::get('/settings', [AdminController::class, 'settings'])
+            ->name('admin.settings');
+        Route::get('/reports', [AdminController::class, 'reports'])
+            ->name('admin.reports');
+    });
+\end{lstlisting}
+
+\textbf{Penjelasan:}
+\begin{itemize}
+    \item \texttt{isAdmin} middleware memastikan hanya admin yang dapat akses
+    \item \texttt{log.after} mencatat setiap request admin untuk audit
+    \item Semua route menggunakan AdminController
+    \item URL akan menjadi /admin/jobs, /admin/users, dll
+\end{itemize}
+
+\section{Implementasi Controller}
+
+\subsection{AdminController}
+Controller untuk menangani semua request admin.
+
+\begin{lstlisting}[style=phpstyle]
+// app/Http/Controllers/AdminController.php
+
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\User;
+
+class AdminController extends Controller
+{
+    public function index()
+    {
+        return view('admin.jobs', [
+            'title' => 'Admin - Job Management'
+        ]);
+    }
+
+    public function users()
+    {
+        $users = User::all();
+        return view('admin.users', [
+            'users' => $users,
+            'title' => 'User Management'
+        ]);
+    }
+
+    public function settings()
+    {
+        return view('admin.settings', [
+            'title' => 'Admin Settings'
+        ]);
+    }
+
+    public function reports()
+    {
+        return view('admin.reports', [
+            'title' => 'Reports'
+        ]);
+    }
+}
+\end{lstlisting}
+
+\subsection{Update RegisteredUserController}
+Menambahkan validasi dan penyimpanan role saat registrasi.
+
+\begin{lstlisting}[style=phpstyle]
+// app/Http/Controllers/Auth/RegisteredUserController.php
+
+public function store(Request $request): RedirectResponse
+{
+    $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'lowercase', 'email', 
+                   'max:255', 'unique:'.User::class],
+        'password' => ['required', 'confirmed', 
+                      Rules\Password::defaults()],
+        'role' => ['required', 'in:user,admin'],
+    ]);
+
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'role' => $request->role,
+    ]);
+
+    event(new Registered($user));
+    Auth::login($user);
+
+    return redirect(route('dashboard', absolute: false));
+}
+\end{lstlisting}
+
+\textbf{Penjelasan:}
+\begin{itemize}
+    \item Validasi \texttt{in:user,admin} memastikan role hanya 'user' atau 'admin'
+    \item Role disimpan saat user register
+    \item Setelah register, user langsung login dan redirect ke dashboard
+\end{itemize}
+
+\section{Implementasi Views}
+
+\subsection{User Dashboard}
+View untuk user dengan role 'user'.
+
+\begin{lstlisting}[style=phpstyle]
+<!-- resources/views/user/dashboard.blade.php -->
+
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('User Dashboard') }}
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
+                    <h3 class="text-2xl font-bold mb-4">
+                        Welcome, {{ Auth::user()->name }}!
+                    </h3>
+                    <p class="text-gray-600 mb-6">
+                        You are logged in as: 
+                        <span class="font-semibold text-blue-600">
+                            {{ Auth::user()->role }}
+                        </span>
+                    </p>
+                    
+                    <!-- User content here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</x-app-layout>
+\end{lstlisting}
+
+\subsection{Admin Jobs View}
+View untuk admin job management.
+
+\begin{lstlisting}[style=phpstyle]
+<!-- resources/views/admin/jobs.blade.php -->
+
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Admin - Job Management') }}
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
+                    <h3 class="text-2xl font-bold mb-4">
+                        Welcome, Admin {{ Auth::user()->name }}!
+                    </h3>
+                    
+                    <!-- Admin content here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</x-app-layout>
+\end{lstlisting}
+
+\section{Testing Access Control}
+
+\subsection{Test Scenario 1: Login sebagai User}
+\begin{itemize}
+    \item \textbf{Credentials:} user@example.com / password
+    \item \textbf{Role:} user
+    \item \textbf{Result:}
+    \begin{itemize}
+        \item [\checkmark] Dapat akses /user/dashboard
+        \item [\checkmark] Dapat akses /user/profile
+        \item [$\times$] Tidak dapat akses /admin/jobs (403 Forbidden)
+        \item [$\times$] Tidak dapat akses /admin/users (redirect ke home)
+    \end{itemize}
+\end{itemize}
+
+\subsection{Test Scenario 2: Login sebagai Admin}
+\begin{itemize}
+    \item \textbf{Credentials:} admin@example.com / password
+    \item \textbf{Role:} admin
+    \item \textbf{Result:}
+    \begin{itemize}
+        \item [\checkmark] Dapat akses /admin/jobs
+        \item [\checkmark] Dapat akses /admin/users
+        \item [\checkmark] Dapat akses /admin/settings
+        \item [\checkmark] Dapat akses /admin/reports
+        \item [$\times$] Tidak dapat akses /user/dashboard (403 Forbidden)
+    \end{itemize}
+\end{itemize}
+
+\subsection{Test Scenario 3: Access tanpa Login}
+\begin{itemize}
+    \item \textbf{Result:}
+    \begin{itemize}
+        \item [$\times$] Semua protected routes redirect ke /login
+        \item [$\times$] Session menyimpan intended URL
+        \item [\checkmark] Setelah login, redirect ke intended URL
+    \end{itemize}
+\end{itemize}
+
+\section{Log Output}
+
+Contoh log yang dihasilkan oleh LogAfterRequest middleware:
+
+\begin{lstlisting}[style=phpstyle]
+// storage/logs/laravel.log
+
+[2025-10-28 10:15:23] local.INFO: Request processed 
+{
+    "url": "http://127.0.0.1:8000/admin/jobs",
+    "method": "GET",
+    "ip": "127.0.0.1",
+    "user_id": 9,
+    "status": 200,
+    "timestamp": "2025-10-28 10:15:23"
+}
+\end{lstlisting}
+
+\section{Pembahasan}
+
+\subsection{Keuntungan Middleware}
+
+\subsubsection{Separation of Concerns}
+Middleware memisahkan logic authorization dari controller, membuat code lebih maintainable dan mengikuti prinsip Single Responsibility Principle (SRP).
+
+\subsubsection{Reusability}
+Middleware dapat digunakan di banyak route tanpa perlu menulis ulang code. Cukup menambahkan alias middleware di route definition.
+
+\subsubsection{Security}
+Centralized security logic memudahkan audit dan maintenance. Semua logic authorization ada di satu tempat.
+
+\subsubsection{Performance}
+Terminable middleware tidak memperlambat response karena dieksekusi setelah response dikirim ke client.
+
+\subsection{Perbedaan Middleware dengan Gate/Policy}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Aspek} & \textbf{Middleware} & \textbf{Gate/Policy} \\
+\hline
+Level & HTTP Request & Authorization Logic \\
+Timing & Before/After Request & On-demand \\
+Use Case & Route protection & Resource authorization \\
+Complexity & Simple checks & Complex business logic \\
+\hline
+\end{tabular}
+\caption{Perbandingan Middleware dan Gate/Policy}
+\end{table}
+
+\subsection{Best Practices}
+
+\subsubsection{Kapan Menggunakan Middleware}
+\begin{itemize}
+    \item Authentication checks
+    \item Role-based access control
+    \item Request logging dan monitoring
+    \item Rate limiting
+    \item CORS handling
+\end{itemize}
+
+\subsubsection{Kapan Menggunakan Gate/Policy}
+\begin{itemize}
+    \item Resource ownership checks (user dapat edit post miliknya sendiri)
+    \item Complex authorization logic dengan multiple conditions
+    \item Model-specific permissions
+\end{itemize}
+
+\subsubsection{Naming Convention}
+\begin{itemize}
+    \item Middleware class: PascalCase dengan prefix yang jelas (EnsureUserHasRole, IsAdmin)
+    \item Middleware alias: lowercase dengan dot notation untuk grouping (role, isAdmin, log.after)
+\end{itemize}
+
+\section{Hasil Tampilan}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{403_forbidden.png}
+    \caption{Akses Ditolak dengan 403 Forbidden jika Role Tidak Sesuai}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{user_dashboard.png}
+    \caption{User Dashboard - Hanya Dapat Diakses oleh Role User}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{admin_jobs.png}
+    \caption{Admin Jobs - Hanya Dapat Diakses oleh Role Admin}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{register_form.png}
+    \caption{Form Registrasi dengan Pilihan Role}
+\end{figure}
+
+\chapter{Kesimpulan}
+
+\begin{enumerate}
+    \item Middleware adalah filter yang bekerja di antara HTTP request dan response, memungkinkan kita untuk memeriksa dan memfilter request sebelum mencapai controller.
+    
+    \item Middleware \texttt{auth} bawaan Laravel sangat berguna untuk membatasi akses halaman hanya untuk user yang sudah login.
+    
+    \item Custom middleware seperti \texttt{IsAdmin} dapat dibuat untuk kebutuhan spesifik seperti pengecekan role atau permissions.
+    
+    \item Pada Laravel 11+, middleware didaftarkan di \texttt{bootstrap/app.php} menggunakan method \texttt{->alias()}, berbeda dengan Laravel 10 yang menggunakan \texttt{app/Http/Kernel.php}.
+    
+    \item Multiple middleware dapat digabungkan pada satu route, dan akan dieksekusi secara berurutan sesuai urutan pendaftaran.
+    
+    \item Route grouping dengan \texttt{prefix()} dan \texttt{group()} memudahkan penerapan middleware yang sama pada banyak route sekaligus.
+\end{enumerate}
+
+\chapter{Saran}
+
+\begin{enumerate}
+    \item Tambahkan lebih banyak role seperti 'moderator', 'editor' untuk sistem yang lebih kompleks.
+    
+    \item Buat middleware yang lebih fleksibel dengan parameter untuk mengecek multiple roles.
+    
+    \item Implementasikan unit testing untuk middleware menggunakan PHPUnit atau Pest.
+    
+    \item Gunakan package seperti Spatie Permission untuk role dan permission management yang lebih advanced.
+    
+    \item Tambahkan logging untuk tracking siapa saja yang mencoba mengakses route admin.
+\end{enumerate}
+
+\chapter{Daftar Pustaka}
+
+\begin{enumerate}
+    \item Laravel Documentation. (2024). \textit{Middleware}. Retrieved from https://laravel.com/docs/11.x/middleware
+    
+    \item Laravel Documentation. (2024). \textit{Authentication}. Retrieved from https://laravel.com/docs/11.x/authentication
+    
+    \item Laravel Documentation. (2024). \textit{Routing}. Retrieved from https://laravel.com/docs/11.x/routing
+\end{enumerate}
+
+\chapter{Lampiran}
+
+\section{Daftar Route Lengkap}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Method} & \textbf{URI} & \textbf{Middleware} & \textbf{Akses} \\
+\hline
+GET & /hello & - & Public \\
+GET & /jobs & - & Public \\
+GET & /dashboard & auth, verified & Logged in \\
+GET & /admin & auth, verified, isAdmin & Admin only \\
+GET & /profile & auth, verified & Logged in \\
+GET & /admin/jobs & auth, verified, isAdmin & Admin only \\
+\hline
+\end{tabular}
+\caption{Daftar Routes dengan Middleware}
+\end{table}
+
+\section{Test Credentials}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Role} & \textbf{Email} & \textbf{Password} \\
+\hline
+Admin & admin@example.com & password \\
+User & user@example.com & password \\
+\hline
+\end{tabular}
+\caption{Test Credentials untuk Testing}
+\end{table}
+
+\section{Command Artisan yang Digunakan}
+
+\begin{lstlisting}[language=bash]
+# Membuat middleware
+php artisan make:middleware IsAdmin
+
+# Membuat controller
+php artisan make:controller JobController
+
+# Reset database dan seed
+php artisan migrate:fresh --seed
+
+# Melihat daftar routes
+php artisan route:list
+
+# Menjalankan server development
+php artisan serve
+\end{lstlisting}
+
+\chapter{Link Github}
+
+Repository: \url{https://github.com/RakanAja05/job-portal}
+
+Branch: Middleware
+
+Link Branch: \url{https://github.com/RakanAja05/job-portal/tree/Middleware}
+
+\end{document}
