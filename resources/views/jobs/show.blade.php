@@ -113,22 +113,33 @@
 
                     <!-- Action Buttons -->
                     <div class="flex flex-wrap gap-4 mt-8 pt-8 border-t border-gray-200">
-                        <a href="{{ route('jobs.edit', $job->id) }}" class="flex-1 min-w-[200px] bg-yellow-500 hover:bg-yellow-600 text-white text-center py-3 px-6 rounded-lg font-semibold transition duration-200 flex items-center justify-center">
-                            <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                            </svg>
-                            Edit Lowongan
-                        </a>
-                        <form action="{{ route('jobs.destroy', $job->id) }}" method="POST" class="flex-1 min-w-[200px]">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" onclick="return confirm('Apakah Anda yakin ingin menghapus lowongan ini?')" class="w-full bg-red-500 hover:bg-red-600 text-white py-3 px-6 rounded-lg font-semibold transition duration-200 flex items-center justify-center">
+                        @if(Auth::user()->role === 'admin')
+                            <!-- Admin Actions -->
+                            <a href="{{ route('jobs.edit', $job->id) }}" class="flex-1 min-w-[200px] bg-yellow-500 hover:bg-yellow-600 text-white text-center py-3 px-6 rounded-lg font-semibold transition duration-200 flex items-center justify-center">
                                 <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                 </svg>
-                                Hapus Lowongan
-                            </button>
-                        </form>
+                                Edit Lowongan
+                            </a>
+                            <form action="{{ route('jobs.destroy', $job->id) }}" method="POST" class="flex-1 min-w-[200px]">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" onclick="return confirm('Apakah Anda yakin ingin menghapus lowongan ini?')" class="w-full bg-red-500 hover:bg-red-600 text-white py-3 px-6 rounded-lg font-semibold transition duration-200 flex items-center justify-center">
+                                    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                    Hapus Lowongan
+                                </button>
+                            </form>
+                        @else
+                            <!-- User Actions - Apply Button -->
+                            <a href="{{ route('applications.create', $job->id) }}" class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-center py-4 px-8 rounded-lg font-bold text-lg shadow-lg hover:shadow-xl transition duration-200 flex items-center justify-center">
+                                <svg class="h-6 w-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                                </svg>
+                                Lamar Sekarang
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>

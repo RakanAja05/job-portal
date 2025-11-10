@@ -38,6 +38,15 @@ Route::middleware(['auth', 'verified', 'isAdmin', 'log.after'])->prefix('admin')
 // Job CRUD Routes - hanya untuk admin
 Route::resource('jobs', JobController::class)->middleware(['auth', 'isAdmin']);
 
+// Application Routes - untuk user yang sudah login
+Route::middleware(['auth'])->group(function () {
+    Route::get('/jobs/{job}/apply', [App\Http\Controllers\ApplicationController::class, 'create'])->name('applications.create');
+    Route::post('/jobs/{job}/apply', [App\Http\Controllers\ApplicationController::class, 'store'])->name('applications.store');
+    Route::get('/applications', [App\Http\Controllers\ApplicationController::class, 'index'])->name('applications.index');
+    Route::get('/applications/{application}', [App\Http\Controllers\ApplicationController::class, 'show'])->name('applications.show');
+    Route::delete('/applications/{application}', [App\Http\Controllers\ApplicationController::class, 'destroy'])->name('applications.destroy');
+});
+
 // Preview Email Template (untuk testing)
 Route::get('/email-preview', function () {
     $job = App\Models\JobVacancy::first();
