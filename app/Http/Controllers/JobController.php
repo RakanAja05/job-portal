@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\JobVacancy as Job;
 use App\Mail\JobCreatedMail;
+use App\Exports\JobsExport;
+use App\Imports\JobsImport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
+use Excel;
 
 class JobController extends Controller
 {
@@ -141,5 +144,30 @@ class JobController extends Controller
         $job->delete();
 
         return redirect()->route('jobs.index')->with('success', 'Lowongan berhasil dihapus');
+    }
+
+    /**
+     * Export jobs to Excel
+     */
+    public function export()
+    {
+        return Excel::download(new JobsExport, 'jobs-' . date('Y-m-d-His') . '.xlsx');
+    }
+
+    /**
+     * Import jobs from Excel
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:2048'
+        ]);
+
+        try {
+            Excel::import(new JobsImport, $request->file('file'));
+            return redirect()->route('jobs.index')->with('success', 'Data lowongan berhasil diimport!');
+        } catch (\Exception $e) {
+            return redirect()->route('jobs.index')->with('error', 'Gagal import data: ' . $e->getMessage());
+        }
     }
 }

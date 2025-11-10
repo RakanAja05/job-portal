@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Application;
 use App\Models\JobVacancy;
+use App\Exports\ApplicationsExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Excel;
 
 class ApplicationController extends Controller
 {
@@ -20,6 +22,18 @@ class ApplicationController extends Controller
             ->get();
         
         return view('applications.index', compact('applications'));
+    }
+
+    /**
+     * Display all applications (for admin)
+     */
+    public function adminIndex()
+    {
+        $applications = Application::with(['user', 'job'])
+            ->latest()
+            ->get();
+        
+        return view('applications.admin-index', compact('applications'));
     }
 
     /**
@@ -114,5 +128,13 @@ class ApplicationController extends Controller
 
         return redirect()->route('applications.index')
             ->with('success', 'Lamaran berhasil dihapus!');
+    }
+
+    /**
+     * Export applications to Excel
+     */
+    public function export()
+    {
+        return Excel::download(new ApplicationsExport, 'applications-' . date('Y-m-d-His') . '.xlsx');
     }
 }

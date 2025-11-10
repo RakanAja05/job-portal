@@ -15,10 +15,16 @@
                         </div>
                     @endif
 
-                    <div style="margin-bottom: 2rem;">
+                    @if(session('error'))
+                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                            <span class="block sm:inline">{{ session('error') }}</span>
+                        </div>
+                    @endif
+
+                    <div style="margin-bottom: 2rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
                         <a href="{{ route('jobs.create') }}" 
                            style="display: inline-block; 
-                                  background-color: #16a34a; 
+                                  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
                                   color: white; 
                                   padding: 15px 30px; 
                                   font-size: 18px; 
@@ -26,8 +32,74 @@
                                   text-decoration: none; 
                                   border-radius: 8px; 
                                   box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                            ➕ TAMBAH LOWONGAN BARU
+                            ➕ TAMBAH LOWONGAN
                         </a>
+
+                        <a href="{{ route('jobs.export') }}" 
+                           style="display: inline-block; 
+                                  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+                                  color: white; 
+                                  padding: 15px 30px; 
+                                  font-size: 18px; 
+                                  font-weight: bold; 
+                                  text-decoration: none; 
+                                  border-radius: 8px; 
+                                  box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                            📥 EXPORT EXCEL
+                        </a>
+
+                        <button onclick="document.getElementById('importForm').style.display='block'" 
+                                style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+                                       color: white; 
+                                       padding: 15px 30px; 
+                                       font-size: 18px; 
+                                       font-weight: bold; 
+                                       border: none;
+                                       border-radius: 8px; 
+                                       cursor: pointer;
+                                       box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                            📤 IMPORT EXCEL
+                        </button>
+                    </div>
+
+                    <!-- Import Form (Hidden by default) -->
+                    <div id="importForm" style="display: none; margin-bottom: 2rem; padding: 20px; background-color: #f9fafb; border-radius: 8px; border: 2px solid #7c3aed;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="font-size: 18px; font-weight: bold; color: #7c3aed;">Import Data Lowongan</h3>
+                            <button onclick="document.getElementById('importForm').style.display='none'" 
+                                    style="background: #ef4444; color: white; padding: 5px 15px; border: none; border-radius: 4px; cursor: pointer;">
+                                ✕ Tutup
+                            </button>
+                        </div>
+                        <form action="{{ route('jobs.import') }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">
+                                    Pilih File Excel (xlsx, xls, csv):
+                                </label>
+                                <input type="file" name="file" required accept=".xlsx,.xls,.csv"
+                                       style="width: 100%; padding: 10px; border: 2px solid #d1d5db; border-radius: 6px;">
+                            </div>
+                            <div style="margin-top: 15px;">
+                                <button type="submit" 
+                                        style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+                                               color: white; 
+                                               padding: 12px 30px; 
+                                               font-size: 16px; 
+                                               font-weight: bold; 
+                                               border: none;
+                                               border-radius: 6px; 
+                                               cursor: pointer;
+                                               box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                                    📤 Upload & Import
+                                </button>
+                            </div>
+                        </form>
+                        <div style="margin-top: 15px; padding: 12px; background-color: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;">
+                            <p style="color: #92400e; font-size: 14px; margin: 0;">
+                                <strong>💡 Format Excel:</strong> Pastikan file Excel memiliki kolom: title, company, location, description, requirements, type, salary, logo
+                            </p>
+                        </div>
                     </div>
 
                     <!-- Card Layout -->

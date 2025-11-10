@@ -38,6 +38,14 @@ Route::middleware(['auth', 'verified', 'isAdmin', 'log.after'])->prefix('admin')
 // Job CRUD Routes - hanya untuk admin
 Route::resource('jobs', JobController::class)->middleware(['auth', 'isAdmin']);
 
+// Export & Import Routes - hanya untuk admin
+Route::middleware(['auth', 'isAdmin'])->group(function () {
+    Route::get('/jobs/export/excel', [JobController::class, 'export'])->name('jobs.export');
+    Route::post('/jobs/import/excel', [JobController::class, 'import'])->name('jobs.import');
+    Route::get('/admin/applications', [App\Http\Controllers\ApplicationController::class, 'adminIndex'])->name('admin.applications');
+    Route::get('/applications/export/excel', [App\Http\Controllers\ApplicationController::class, 'export'])->name('applications.export');
+});
+
 // Application Routes - untuk user yang sudah login
 Route::middleware(['auth'])->group(function () {
     Route::get('/jobs/{job}/apply', [App\Http\Controllers\ApplicationController::class, 'create'])->name('applications.create');
