@@ -6,8 +6,9 @@ use App\Models\Application;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithTitle;
 
-class ApplicationsExport implements FromCollection, WithHeadings, WithMapping
+class ApplicationsExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
     /**
      * @return \Illuminate\Support\Collection
@@ -50,5 +51,13 @@ class ApplicationsExport implements FromCollection, WithHeadings, WithMapping
             $application->status,
             $application->created_at,
         ];
+    }
+
+    /**
+     * @return string
+     */
+    public function title(): string
+    {
+        return 'Pelamar';
     }
 }

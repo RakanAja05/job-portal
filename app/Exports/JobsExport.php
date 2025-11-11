@@ -6,8 +6,9 @@ use App\Models\JobVacancy;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithTitle;
 
-class JobsExport implements FromCollection, WithHeadings, WithMapping
+class JobsExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
     /**
      * @return \Illuminate\Support\Collection
@@ -56,5 +57,13 @@ class JobsExport implements FromCollection, WithHeadings, WithMapping
             $job->created_at,
             $job->updated_at,
         ];
+    }
+
+    /**
+     * @return string
+     */
+    public function title(): string
+    {
+        return 'Lowongan Kerja';
     }
 }

@@ -7,14 +7,12 @@ use App\Http\Controllers\JobSeekerController;
 use App\Http\Controllers\JobController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Public Job Listings - bisa diakses tanpa login
+Route::get('/', [JobController::class, 'publicIndex'])->name('home');
+Route::get('/jobs/public/{job}', [JobController::class, 'publicShow'])->name('jobs.public.show');
 
 // Dashboard untuk semua user yang login
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [JobController::class, 'publicIndex'])->middleware(['auth', 'verified'])->name('dashboard');
 
 // User Dashboard - hanya untuk role 'user'
 Route::middleware(['auth', 'verified', 'role:user'])->prefix('user')->group(function () {
