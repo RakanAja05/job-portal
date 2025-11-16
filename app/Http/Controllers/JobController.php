@@ -4,12 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\JobVacancy as Job;
 use App\Mail\JobCreatedMail;
-use App\Exports\JobsExport;
-use App\Imports\JobsImport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
-use Maatwebsite\Excel\Facades\Excel;
 
 class JobController extends Controller
 {
@@ -151,7 +148,42 @@ class JobController extends Controller
      */
     public function export()
     {
-        return Excel::download(new JobsExport, 'jobs-' . date('Y-m-d-His') . '.xlsx');
+        $jobs = Job::all();
+        
+        $filename = 'jobs-' . date('Y-m-d-His') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+        
+        $callback = function() use ($jobs) {
+            $file = fopen('php://output', 'w');
+            
+            // Header
+            fputcsv($file, ['ID', 'Title', 'Company', 'Location', 'Description', 'Requirements', 'Type', 'Salary', 'Logo', 'Created At', 'Updated At']);
+            
+            // Data
+            foreach ($jobs as $job) {
+                fputcsv($file, [
+                    $job->id,
+                    $job->title,
+                    $job->company,
+                    $job->location,
+                    $job->description,
+                    $job->requirements,
+                    $job->type,
+                    $job->salary,
+                    $job->logo,
+                    $job->created_at,
+                    $job->updated_at,
+                ]);
+            }
+            
+            fclose($file);
+        };
+        
+        return response()->stream($callback, 200, $headers);
     }
 
     /**
@@ -160,12 +192,36 @@ class JobController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:2048'
+            'file' => 'required|mimes:csv,txt|max:2048'
         ]);
 
         try {
-            Excel::import(new JobsImport, $request->file('file'));
-            return redirect()->route('jobs.index')->with('success', 'Data lowongan berhasil diimport!');
+            $file = $request->file('file');
+            $handle = fopen($file->getRealPath(), 'r');
+            
+            // Skip header
+            fgetcsv($handle);
+            
+            $imported = 0;
+            while (($data = fgetcsv($handle)) !== false) {
+                if (count($data) >= 4) { // At least title, company, location, description
+                    Job::create([
+                        'title'        => $data[0] ?? '',
+                        'company'      => $data[1] ?? '',
+                        'location'     => $data[2] ?? '',
+                        'description'  => $data[3] ?? '',
+                        'requirements' => $data[4] ?? null,
+                        'type'         => isset($data[5]) && in_array($data[5], ['full-time', 'part-time']) ? $data[5] : 'full-time',
+                        'salary'       => isset($data[6]) && is_numeric($data[6]) ? $data[6] : null,
+                        'logo'         => $data[7] ?? null,
+                    ]);
+                    $imported++;
+                }
+            }
+            
+            fclose($handle);
+            
+            return redirect()->route('jobs.index')->with('success', "Berhasil import {$imported} lowongan kerja!");
         } catch (\Exception $e) {
             return redirect()->route('jobs.index')->with('error', 'Gagal import data: ' . $e->getMessage());
         }

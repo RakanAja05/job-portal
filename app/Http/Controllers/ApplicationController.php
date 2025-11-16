@@ -4,10 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Application;
 use App\Models\JobVacancy;
-use App\Exports\ApplicationsExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Maatwebsite\Excel\Facades\Excel;
 
 class ApplicationController extends Controller
 {
@@ -135,6 +133,38 @@ class ApplicationController extends Controller
      */
     public function export()
     {
-        return Excel::download(new ApplicationsExport, 'applications-' . date('Y-m-d-His') . '.xlsx');
+        $applications = Application::with(['user', 'job'])->get();
+        
+        $filename = 'applications-' . date('Y-m-d-His') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+        
+        $callback = function() use ($applications) {
+            $file = fopen('php://output', 'w');
+            
+            // Header
+            fputcsv($file, ['ID', 'Applicant Name', 'Applicant Email', 'Job Title', 'Company', 'CV', 'Status', 'Applied At']);
+            
+            // Data
+            foreach ($applications as $application) {
+                fputcsv($file, [
+                    $application->id,
+                    $application->user->name,
+                    $application->user->email,
+                    $application->job->title,
+                    $application->job->company,
+                    $application->cv,
+                    $application->status,
+                    $application->created_at,
+                ]);
+            }
+            
+            fclose($file);
+        };
+        
+        return response()->stream($callback, 200, $headers);
     }
 }

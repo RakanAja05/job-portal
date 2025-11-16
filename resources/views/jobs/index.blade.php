@@ -45,7 +45,7 @@
                                   text-decoration: none; 
                                   border-radius: 8px; 
                                   box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                            📥 EXPORT LOWONGAN
+                            📥 EXPORT LOWONGAN (CSV)
                         </a>
 
                         <a href="{{ route('applications.export') }}" 
@@ -58,7 +58,7 @@
                                   text-decoration: none; 
                                   border-radius: 8px; 
                                   box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                            📥 EXPORT PELAMAR
+                            📥 EXPORT PELAMAR (CSV)
                         </a>
 
                         <button onclick="document.getElementById('importForm').style.display='block'" 
@@ -71,14 +71,14 @@
                                        border-radius: 8px; 
                                        cursor: pointer;
                                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                            📤 IMPORT EXCEL
+                            📤 IMPORT CSV
                         </button>
                     </div>
 
                     <!-- Import Form (Hidden by default) -->
                     <div id="importForm" style="display: none; margin-bottom: 2rem; padding: 20px; background-color: #f9fafb; border-radius: 8px; border: 2px solid #7c3aed;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <h3 style="font-size: 18px; font-weight: bold; color: #7c3aed;">Import Data Lowongan</h3>
+                            <h3 style="font-size: 18px; font-weight: bold; color: #7c3aed;">Import Data Lowongan (Format CSV)</h3>
                             <button onclick="document.getElementById('importForm').style.display='none'" 
                                     style="background: #ef4444; color: white; padding: 5px 15px; border: none; border-radius: 4px; cursor: pointer;">
                                 ✕ Tutup
@@ -88,9 +88,9 @@
                             @csrf
                             <div style="margin-bottom: 15px;">
                                 <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">
-                                    Pilih File Excel (xlsx, xls, csv):
+                                    Pilih File CSV (format: title,company,location,description,requirements,type,salary,logo):
                                 </label>
-                                <input type="file" name="file" required accept=".xlsx,.xls,.csv"
+                                <input type="file" name="file" required accept=".csv,.txt"
                                        style="width: 100%; padding: 10px; border: 2px solid #d1d5db; border-radius: 6px;">
                             </div>
                             <div style="margin-top: 15px;">
