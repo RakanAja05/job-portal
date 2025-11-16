@@ -10,7 +10,7 @@ use App\Imports\JobsImport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
-use Excel;
+use Maatwebsite\Excel\Facades\Excel;
 
 class JobController extends Controller
 {

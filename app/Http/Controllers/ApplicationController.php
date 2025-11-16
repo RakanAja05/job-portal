@@ -7,7 +7,7 @@ use App\Models\JobVacancy;
 use App\Exports\ApplicationsExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Excel;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ApplicationController extends Controller
 {
