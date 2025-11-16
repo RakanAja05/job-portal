@@ -45,7 +45,20 @@
                                   text-decoration: none; 
                                   border-radius: 8px; 
                                   box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                            📥 EXPORT EXCEL
+                            📥 EXPORT LOWONGAN
+                        </a>
+
+                        <a href="{{ route('applications.export') }}" 
+                           style="display: inline-block; 
+                                  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+                                  color: white; 
+                                  padding: 15px 30px; 
+                                  font-size: 18px; 
+                                  font-weight: bold; 
+                                  text-decoration: none; 
+                                  border-radius: 8px; 
+                                  box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                            📥 EXPORT PELAMAR
                         </a>
 
                         <button onclick="document.getElementById('importForm').style.display='block'" 
