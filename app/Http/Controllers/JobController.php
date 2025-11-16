@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\JobVacancy as Job;
 use App\Mail\JobCreatedMail;
 use App\Exports\JobsExport;
-use App\Exports\JobsWithApplicationsExport;
 use App\Imports\JobsImport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -152,7 +151,7 @@ class JobController extends Controller
      */
     public function export()
     {
-        return Excel::download(new JobsWithApplicationsExport, 'jobs-and-applications-' . date('Y-m-d-His') . '.xlsx');
+        return Excel::download(new JobsExport, 'jobs-' . date('Y-m-d-His') . '.xlsx');
     }
 
     /**
