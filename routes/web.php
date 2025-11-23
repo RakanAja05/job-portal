@@ -42,6 +42,15 @@ Route::middleware(['auth', 'isAdmin'])->group(function () {
     Route::post('/jobs/import/excel', [JobController::class, 'import'])->name('jobs.import');
     Route::get('/admin/applications', [App\Http\Controllers\ApplicationController::class, 'adminIndex'])->name('admin.applications');
     Route::get('/applications/export/excel', [App\Http\Controllers\ApplicationController::class, 'export'])->name('applications.export');
+    
+    // Application Accept/Reject
+    Route::post('/applications/{application}/accept', [App\Http\Controllers\ApplicationController::class, 'accept'])->name('applications.accept');
+    Route::post('/applications/{application}/reject', [App\Http\Controllers\ApplicationController::class, 'reject'])->name('applications.reject');
+    
+    // Notifications
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/mark-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+    Route::post('/notifications/mark-all-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
 });
 
 // Application Routes - untuk user yang sudah login
@@ -72,6 +81,36 @@ Route::get('/email-preview', function () {
     }
     
     return new App\Mail\JobCreatedMail($job);
+})->middleware(['auth', 'isAdmin']);
+
+// Test Send Email Route
+Route::get('/test-email', function () {
+    try {
+        $job = App\Models\JobVacancy::first();
+        
+        if (!$job) {
+            // Create dummy job for testing
+            $job = new App\Models\JobVacancy([
+                'title' => 'Test Job - Backend Developer',
+                'company' => 'Test Company',
+                'location' => 'Jakarta',
+                'type' => 'full-time',
+                'salary' => 10000000,
+                'description' => 'This is a test job for email testing.',
+                'logo' => null
+            ]);
+            $job->id = 999;
+        }
+        
+        // Send email
+        Illuminate\Support\Facades\Mail::to('rakanhibrizi00@gmail.com')
+            ->send(new App\Mail\JobCreatedMail($job));
+        
+        return '<h1>✅ Email Berhasil Dikirim!</h1><p>Cek inbox email Anda: <strong>rakanhibrizi00@gmail.com</strong></p><p>Subject: 🎉 Lowongan Kerja Baru: ' . $job->title . '</p><br><a href="/">← Kembali ke Home</a>';
+        
+    } catch (\Exception $e) {
+        return '<h1>❌ Email Gagal Dikirim!</h1><p>Error: ' . $e->getMessage() . '</p><br><a href="/">← Kembali ke Home</a>';
+    }
 })->middleware(['auth', 'isAdmin']);
 
 // Profile routes with auth middleware group

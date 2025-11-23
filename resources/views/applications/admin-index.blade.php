@@ -17,18 +17,32 @@
                 <div class="p-6 text-gray-900">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                         <h3 class="text-2xl font-bold">📋 Daftar Semua Lamaran</h3>
-                        <a href="{{ route('applications.export') }}" 
-                           style="display: inline-block; 
-                                  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
-                                  color: white; 
-                                  padding: 15px 30px; 
-                                  font-size: 16px; 
-                                  font-weight: bold; 
-                                  text-decoration: none; 
-                                  border-radius: 8px; 
-                                  box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                            📥 EXPORT EXCEL
-                        </a>
+                        <div style="display: flex; gap: 15px;">
+                            <a href="{{ route('notifications.index') }}" 
+                               style="display: inline-block; 
+                                      background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+                                      color: white; 
+                                      padding: 15px 30px; 
+                                      font-size: 16px; 
+                                      font-weight: bold; 
+                                      text-decoration: none; 
+                                      border-radius: 8px; 
+                                      box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                                🔔 NOTIFIKASI
+                            </a>
+                            <a href="{{ route('applications.export') }}" 
+                               style="display: inline-block; 
+                                      background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+                                      color: white; 
+                                      padding: 15px 30px; 
+                                      font-size: 16px; 
+                                      font-weight: bold; 
+                                      text-decoration: none; 
+                                      border-radius: 8px; 
+                                      box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                                📥 EXPORT EXCEL
+                            </a>
+                        </div>
                     </div>
 
                     @if($applications->count() > 0)
@@ -43,6 +57,7 @@
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Lamar</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CV</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
@@ -87,6 +102,26 @@
                                                 </svg>
                                                 Download
                                             </a>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            @if($application->status === 'Pending')
+                                            <div style="display: flex; gap: 5px;">
+                                                <form action="{{ route('applications.accept', $application->id) }}" method="POST" style="display: inline;">
+                                                    @csrf
+                                                    <button type="submit" style="background: #10b981; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px;">
+                                                        ✓ Terima
+                                                    </button>
+                                                </form>
+                                                <form action="{{ route('applications.reject', $application->id) }}" method="POST" style="display: inline;">
+                                                    @csrf
+                                                    <button type="submit" style="background: #ef4444; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px;">
+                                                        ✗ Tolak
+                                                    </button>
+                                                </form>
+                                            </div>
+                                            @else
+                                            <span style="color: #9ca3af; font-size: 12px;">-</span>
+                                            @endif
                                         </td>
                                     </tr>
                                     @endforeach

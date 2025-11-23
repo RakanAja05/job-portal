@@ -4,8 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Application;
 use App\Models\JobVacancy;
+use App\Models\Notification;
+use App\Models\User;
+use App\Mail\NewApplicationMail;
+use App\Mail\ApplicationStatusMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
 
 class ApplicationController extends Controller
 {
@@ -54,11 +59,29 @@ class ApplicationController extends Controller
 
         $cvPath = $request->file('cv')->store('cvs', 'public');
 
-        Application::create([
+        $application = Application::create([
             'user_id' => auth()->id(),
             'job_id' => $jobId,
             'cv' => $cvPath,
         ]);
+
+        // Get all admins
+        $admins = User::where('role', 'admin')->get();
+
+        foreach ($admins as $admin) {
+            // 1. Kirim email ke admin dengan link download CV
+            Mail::to($admin->email)->send(new NewApplicationMail($application));
+
+            // 2. Simpan notifikasi ke database
+            Notification::create([
+                'user_id' => $admin->id,
+                'application_id' => $application->id,
+                'type' => 'new_application',
+                'title' => 'Lamaran Baru dari ' . $application->user->name,
+                'message' => $application->user->name . ' melamar posisi ' . $application->job->title . ' di ' . $application->job->company,
+                'is_read' => false,
+            ]);
+        }
 
         return redirect()->route('jobs.show', $jobId)
             ->with('success', 'Lamaran berhasil dikirim!');
@@ -126,6 +149,36 @@ class ApplicationController extends Controller
 
         return redirect()->route('applications.index')
             ->with('success', 'Lamaran berhasil dihapus!');
+    }
+
+    /**
+     * Accept application and send email to user
+     */
+    public function accept($id)
+    {
+        $application = Application::findOrFail($id);
+        $application->status = 'accepted';
+        $application->save();
+
+        // Send email to user
+        Mail::to($application->user->email)->send(new ApplicationStatusMail($application, 'accepted'));
+
+        return redirect()->back()->with('success', 'Lamaran diterima! Email telah dikirim ke pelamar.');
+    }
+
+    /**
+     * Reject application and send email to user
+     */
+    public function reject($id)
+    {
+        $application = Application::findOrFail($id);
+        $application->status = 'rejected';
+        $application->save();
+
+        // Send email to user
+        Mail::to($application->user->email)->send(new ApplicationStatusMail($application, 'rejected'));
+
+        return redirect()->back()->with('success', 'Lamaran ditolak! Email telah dikirim ke pelamar.');
     }
 
     /**

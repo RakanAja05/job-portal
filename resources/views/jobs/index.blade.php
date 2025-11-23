@@ -35,6 +35,19 @@
                             ➕ TAMBAH LOWONGAN
                         </a>
 
+                        <a href="{{ route('admin.applications') }}" 
+                           style="display: inline-block; 
+                                  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                                  color: white; 
+                                  padding: 15px 30px; 
+                                  font-size: 18px; 
+                                  font-weight: bold; 
+                                  text-decoration: none; 
+                                  border-radius: 8px; 
+                                  box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                            📋 KELOLA LAMARAN
+                        </a>
+
                         <a href="{{ route('jobs.export') }}" 
                            style="display: inline-block; 
                                   background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
