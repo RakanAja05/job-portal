@@ -47,14 +47,56 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 class="text-5xl font-bold mb-4">Temukan Pekerjaan Impianmu! 🚀</h1>
             <p class="text-xl mb-8">Bergabunglah dengan ribuan pencari kerja dan temukan karir terbaikmu</p>
-            <div class="max-w-2xl mx-auto">
-                <div class="bg-white rounded-lg shadow-lg p-2 flex">
-                    <input type="text" placeholder="Cari posisi, perusahaan..." class="flex-1 px-4 py-3 text-gray-900 rounded-l-lg focus:outline-none">
-                    <button class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-r-lg font-semibold">
-                        Cari
-                    </button>
+            <form method="GET" action="{{ route('home') }}" class="max-w-4xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-3 bg-white rounded-lg shadow-lg p-4">
+                    <div class="md:col-span-2 flex">
+                        <input name="keyword" value="{{ request('keyword') }}" type="text" placeholder="Cari posisi, perusahaan, lokasi..." class="flex-1 px-4 py-3 text-gray-900 rounded-l-lg focus:outline-none border border-gray-200">
+                    </div>
+                    <div>
+                        <select name="company" class="w-full px-3 py-3 border border-gray-200 rounded focus:outline-none text-gray-700">
+                            <option value="">Perusahaan</option>
+                            @foreach($companies as $c)
+                                <option value="{{ $c }}" @selected(request('company')===$c)>{{ $c }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <select name="location" class="w-full px-3 py-3 border border-gray-200 rounded focus:outline-none text-gray-700">
+                            <option value="">Lokasi</option>
+                            @foreach($locations as $l)
+                                <option value="{{ $l }}" @selected(request('location')===$l)>{{ $l }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <select name="type" class="w-full px-3 py-3 border border-gray-200 rounded focus:outline-none text-gray-700">
+                            <option value="">Tipe</option>
+                            <option value="full-time" @selected(request('type')==='full-time')>Full-Time</option>
+                            <option value="part-time" @selected(request('type')==='part-time')>Part-Time</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-5 flex gap-3 mt-2">
+                        <button class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold">🔍 Cari</button>
+                        <a href="{{ route('home') }}" class="px-6 py-3 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold text-gray-700">Reset</a>
+                    </div>
                 </div>
-            </div>
+                <div class="text-sm text-white mt-4 opacity-90">
+                    @php
+                        $activeFilters = collect([
+                            'keyword' => request('keyword'),
+                            'company' => request('company'),
+                            'location' => request('location'),
+                            'type' => request('type'),
+                        ])->filter();
+                    @endphp
+                    @if($activeFilters->isNotEmpty())
+                        <span>Filter aktif:</span>
+                        @foreach($activeFilters as $k=>$v)
+                            <span class="inline-block bg-white bg-opacity-20 px-3 py-1 rounded-full ml-2">{{ $k }}: <strong>{{ $v }}</strong></span>
+                        @endforeach
+                    @endif
+                </div>
+            </form>
         </div>
     </div>
 
@@ -62,15 +104,15 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 mb-12">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-white rounded-lg shadow-lg p-6 text-center">
-                <div class="text-4xl font-bold text-blue-600">{{ $jobs->count() }}</div>
+                <div class="text-4xl font-bold text-blue-600">{{ $jobsTotal }}</div>
                 <div class="text-gray-600 mt-2">Lowongan Tersedia</div>
             </div>
             <div class="bg-white rounded-lg shadow-lg p-6 text-center">
-                <div class="text-4xl font-bold text-green-600">{{ $jobs->where('type', 'full-time')->count() }}</div>
+                <div class="text-4xl font-bold text-green-600">{{ $fullTimeCount }}</div>
                 <div class="text-gray-600 mt-2">Full-Time</div>
             </div>
             <div class="bg-white rounded-lg shadow-lg p-6 text-center">
-                <div class="text-4xl font-bold text-purple-600">{{ $jobs->where('type', 'part-time')->count() }}</div>
+                <div class="text-4xl font-bold text-purple-600">{{ $partTimeCount }}</div>
                 <div class="text-gray-600 mt-2">Part-Time</div>
             </div>
         </div>
@@ -129,6 +171,9 @@
                     </div>
                 </div>
                 @endforeach
+            </div>
+            <div class="mt-10">
+                {{ $jobs->links() }}
             </div>
         @else
             <div class="text-center py-16">

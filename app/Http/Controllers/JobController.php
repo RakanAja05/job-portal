@@ -230,10 +230,38 @@ class JobController extends Controller
     /**
      * Display public job listings (for all users including guests)
      */
-    public function publicIndex()
+    public function publicIndex(Request $request)
     {
-        $jobs = Job::latest()->get();
-        return view('jobs.public-index', compact('jobs'));
+        $q = Job::query();
+
+        if ($request->filled('keyword')) {
+            $kw = $request->get('keyword');
+            $q->where(function($s) use ($kw) {
+                $s->where('title', 'like', "%$kw%")
+                  ->orWhere('company', 'like', "%$kw%")
+                  ->orWhere('location', 'like', "%$kw%");
+            });
+        }
+        if ($request->filled('company')) {
+            $q->where('company', $request->get('company'));
+        }
+        if ($request->filled('location')) {
+            $q->where('location', $request->get('location'));
+        }
+        if ($request->filled('type') && in_array($request->get('type'), ['full-time','part-time'])) {
+            $q->where('type', $request->get('type'));
+        }
+
+        $perPage = (int) $request->get('per_page', 9);
+        $jobs = $q->orderBy('created_at','desc')->paginate($perPage)->withQueryString();
+
+        $jobsTotal = Job::count();
+        $fullTimeCount = Job::where('type', 'full-time')->count();
+        $partTimeCount = Job::where('type', 'part-time')->count();
+        $companies = Job::select('company')->distinct()->pluck('company');
+        $locations = Job::select('location')->distinct()->pluck('location');
+
+        return view('jobs.public-index', compact('jobs','jobsTotal','fullTimeCount','partTimeCount','companies','locations'));
     }
 
     /**

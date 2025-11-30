@@ -1,0 +1,266 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Job Portal API",
+        "description": "Swagger documentation for the Job Portal service",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/applications": {
+            "get": {
+                "tags": [
+                    "Applications"
+                ],
+                "summary": "List applications",
+                "operationId": "895749895f8d7900e2b7a93830d1f67f",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated applications"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/jobs/{id}/apply": {
+            "post": {
+                "tags": [
+                    "Applications"
+                ],
+                "summary": "Apply to job",
+                "operationId": "e96804e85fcd63351097a684e1968321",
+                "responses": {
+                    "201": {
+                        "description": "Application submitted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/applications/{id}/status": {
+            "patch": {
+                "tags": [
+                    "Applications"
+                ],
+                "summary": "Update application status",
+                "operationId": "ec30318084d4201cbbc31b04511465e5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "Accepted",
+                                            "Rejected"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Status updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/jobs": {
+            "get": {
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Get all job listings (protected)",
+                "operationId": "7ddb43f87de5ddc0eb46ffea0b1ce86c",
+                "parameters": [
+                    {
+                        "name": "keyword",
+                        "in": "query",
+                        "description": "Search keyword",
+                        "required": false
+                    },
+                    {
+                        "name": "company",
+                        "in": "query",
+                        "description": "Filter by company",
+                        "required": false
+                    },
+                    {
+                        "name": "location",
+                        "in": "query",
+                        "description": "Filter by location",
+                        "required": false
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page",
+                        "required": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated list of jobs"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Create job",
+                "operationId": "46db842b9a0994748f28e0cc492a5b45",
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/public/jobs": {
+            "get": {
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Public job listings (no auth)",
+                "operationId": "5eb5c3573c481ad04d9db7454e340ec5",
+                "responses": {
+                    "200": {
+                        "description": "Paginated public list of jobs"
+                    }
+                }
+            }
+        },
+        "/api/jobs/{id}": {
+            "get": {
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Show job",
+                "operationId": "5110aac1a46a8914ca1696c2208d8e76",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Job detail"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Update job",
+                "operationId": "09003eadd3b848807fdd9deb993a68ee",
+                "responses": {
+                    "200": {
+                        "description": "Updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Delete job",
+                "operationId": "10aafac8e299b54e3bdd7bf7d651b26b",
+                "responses": {
+                    "200": {
+                        "description": "Deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "Bearer",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Applications",
+            "description": "Applications"
+        },
+        {
+            "name": "Jobs",
+            "description": "Jobs"
+        }
+    ]
+}

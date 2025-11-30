@@ -113,6 +113,11 @@ Route::get('/test-email', function () {
     }
 })->middleware(['auth', 'isAdmin']);
 
+// Simple API demo page (links + curl examples)
+Route::get('/api-demo', function() {
+    return view('api.demo');
+})->name('api.demo');
+
 // Profile routes with auth middleware group
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

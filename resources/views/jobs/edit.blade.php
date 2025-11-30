@@ -101,13 +101,23 @@
                             @enderror
                         </div>
 
-                        <div class="flex items-center justify-between">
-                            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                                Update
-                            </button>
-                            <a href="{{ route('jobs.index') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                                Batal
-                            </a>
+                        <div class="mt-8 border-t pt-6">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                <div class="text-sm text-gray-600 flex items-center gap-2">
+                                    <svg class="h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6 1a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Pastikan semua perubahan sudah benar sebelum menyimpan.
+                                </div>
+                                <div class="flex gap-3">
+                                    <a href="{{ route('jobs.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded shadow transition">
+                                        ✕ Batal
+                                    </a>
+                                    <button type="submit" onclick="return confirm('Simpan perubahan lowongan ini?')" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded shadow-lg tracking-wide flex items-center gap-2">
+                                        💾 Simpan Perubahan
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
